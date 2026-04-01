@@ -60,13 +60,13 @@ function getSecureRandomIndex(max) {
 
 // Color mana MTG
 const colors = [
-  "#F9FAF8", // White Mana
-  "#0E68AB", // Blue Mana
-  "#A64DFF", // Black Mana
-  "#D3202A", // Red Mana
-  "#00733E", // Green Mana
-  "#00E5FF", // Colorless/Artifact (Azzurro ciano)
-  "#F6C644", // Gold/Multicolor
+  "#F9FAF8", // Bianco
+  "#0E68AB", // Blu
+  "#A64DFF", // Nero (Viola magico per visibilità)
+  "#D3202A", // Rosso
+  "#00733E", // Verde
+  "#9CA3AF", // Incolore/Artefatto (Argento/Grigio elegante)
+  "#F6C644", // Multicolore (Oro)
 ];
 
 let colorIdx = 0;

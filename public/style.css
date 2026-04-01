@@ -1,14 +1,18 @@
-/* Reset e setup base */
+/* =========================================
+   1. RESET E SETUP BASE
+========================================= */
 body,
 html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  background-color: #1a1a1a;
-  color: white;
-  font-family: "Rajdhani", sans-serif;
+  background-color: #0d0e12; /* Nero-blu profondo, stile tappetino MTG */
+  color: #ffffff;
+  font-family: "Montserrat", sans-serif; /* Font elegante e moderno */
   overflow: hidden;
+
+  /* Ottimizzazioni Mobile */
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -16,7 +20,75 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Testo centrale e contenitore UI */
+/* =========================================
+   2. SCHERMATA INIZIALE (MINIMAL PREMIUM)
+========================================= */
+#start-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0d0e12;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  transition: opacity 0.4s ease-out;
+}
+
+.testi-home {
+  text-align: center;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 10px;
+  color: #ffffff;
+  margin: 0;
+  margin-right: -10px; /* Compensa il letter-spacing per un centro perfetto */
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 6px;
+  color: #6b7280; /* Grigio cenere elegante */
+  margin: 10px 0 0 0;
+  margin-right: -6px;
+  text-transform: uppercase;
+}
+
+#start-btn {
+  background-color: #ffffff;
+  color: #0d0e12;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 18px 45px;
+  border-radius: 50px; /* Taglio a pillola moderno */
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s;
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+  font-family: inherit;
+}
+
+#start-btn:active {
+  transform: scale(0.92);
+  background-color: #e5e7eb;
+}
+
+/* =========================================
+   3. UI DEL GIOCO (Testo e Restart)
+========================================= */
 #ui-layer {
   position: absolute;
   top: 50%;
@@ -31,17 +103,17 @@ html {
   gap: 20px;
 }
 
-h1 {
+#ui-layer h1 {
   font-size: 2.5rem;
+  font-weight: 700;
   text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
   margin: 0;
 }
 
-/* Pulsante di Restart */
 #restart-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 3px solid white;
-  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #ffffff;
   border-radius: 50%;
   width: 70px;
   height: 70px;
@@ -51,18 +123,21 @@ h1 {
   align-items: center;
   justify-content: center;
   transition:
-    transform 0.1s,
-    background 0.2s;
+    transform 0.2s,
+    background 0.2s,
+    border-color 0.2s;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  -webkit-tap-highlight-color: transparent;
 }
 
 #restart-btn:active {
   transform: scale(0.9);
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
 }
 
-/* Stile base dei cerchi */
+/* =========================================
+   4. CERCHI MAGICI (I tocchi delle dita)
+========================================= */
 .finger {
   position: absolute;
   width: 100px;
@@ -73,11 +148,13 @@ h1 {
   transition: opacity 0.3s;
   pointer-events: none;
 
+  /* Effetto Aura Magica */
   box-shadow:
     0 0 20px currentColor,
     inset 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
+/* Animazione pre-selezione */
 .pulsing {
   animation: pulse 0.3s infinite alternate;
 }
@@ -88,88 +165,18 @@ h1 {
   }
   to {
     transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 0 0 30px currentColor;
+    box-shadow:
+      0 0 35px currentColor,
+      inset 0 0 20px rgba(255, 255, 255, 0.6);
   }
 }
 
+/* Animazione del cerchio vincitore */
 .winner {
   transform: translate(-50%, -50%) scale(1.5);
-  box-shadow: 0 0 50px currentColor;
+  box-shadow:
+    0 0 50px currentColor,
+    inset 0 0 30px rgba(255, 255, 255, 0.8);
   z-index: 50;
   transition: all 0.5s ease-out;
-}
-
-/* --- NUOVO: SCHERMATA INIZIALE --- */
-#start-screen {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  /* Sfondo radiale profondo: dal grigio scuro al nero assoluto */
-  background: radial-gradient(circle at center, #2a2a35 0%, #0d0d0d 100%);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 80px;
-  transition: opacity 0.6s ease-out; /* Dissolvenza più lenta e drammatica */
-}
-
-.logo-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-.start-icon {
-  color: #a64dff; /* Un tocco di mana viola/arcano */
-  filter: drop-shadow(0 0 15px rgba(166, 77, 255, 0.4));
-  margin-bottom: 10px;
-}
-
-.title {
-  font-size: 2.5rem;
-  font-weight: 700; /* Font più sottile */
-  letter-spacing: 12px; /* Molto spazio tra le lettere per eleganza */
-  color: #ffffff;
-  margin: 0;
-  margin-right: -12px; /* Compensa il letter-spacing extra a destra */
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-  text-transform: uppercase;
-}
-
-.subtitle {
-  font-size: 0.9rem;
-  font-weight: 400;
-  letter-spacing: 4px;
-  color: #888;
-  margin: 0;
-  margin-right: -4px;
-  text-transform: uppercase;
-}
-
-#start-btn {
-  background: transparent; /* Niente più verde fluo */
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  font-size: 1rem;
-  letter-spacing: 3px;
-  padding: 15px 40px;
-  border-radius: 2px; /* Taglio netto e moderno, niente effetto pillola */
-  cursor: pointer;
-  pointer-events: auto;
-  transition: all 0.3s ease;
-  font-family: inherit;
-  text-transform: uppercase;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#start-btn:active {
-  transform: scale(0.97);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #fff;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
