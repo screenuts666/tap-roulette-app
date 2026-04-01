@@ -1,0 +1,8 @@
+{
+  "name": "TapRouletteApp",
+  "short_name": "TapRouletteApp",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a"
+}
