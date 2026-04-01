@@ -3,7 +3,7 @@ let audioCtx;
 let audioUnlocked = false;
 
 function playSound(type) {
-  if (!audioCtx) return; // Sicurezza nel caso non sia ancora sbloccato
+  if (!audioCtx) return;
   if (audioCtx.state === "suspended") audioCtx.resume();
 
   const osc = audioCtx.createOscillator();
@@ -47,26 +47,15 @@ function getSecureRandomIndex(max) {
 }
 
 // GLOBAL VARIABLES
-// const colors = [
-//   "#FF3B30",
-//   "#34C759",
-//   "#007AFF",
-//   "#FFCC00",
-//   "#AF52DE",
-//   "#FF9500",
-//   "#32ADE6",
-//   "#FF2D55",
-// ];
-
-// Color mana MTG
+// Color mana MTG palette
 const colors = [
-  "#F9FAF8", // Bianco
-  "#0E68AB", // Blu
-  "#A64DFF", // Nero (Viola magico per visibilità)
-  "#D3202A", // Rosso
-  "#00733E", // Verde
-  "#9CA3AF", // Incolore/Artefatto (Argento/Grigio elegante)
-  "#F6C644", // Multicolore (Oro)
+  "#F9FAF8", // White
+  "#0E68AB", // Blue
+  "#A64DFF", // Black (Magic Purple for visibility)
+  "#D3202A", // Red
+  "#00733E", // Green
+  "#9CA3AF", // Colorless/Artifact (Elegant Silver/Gray)
+  "#F6C644", // Multicolor (Gold)
 ];
 
 let colorIdx = 0;
@@ -74,21 +63,21 @@ let fingers = new Map();
 let state = "WAITING";
 let countdownInterval;
 let timeLeft = 5;
-let isGameActive = false; // NUOVO: Blocca i tocchi finché non premi INIZIA
+let isGameActive = false;
 
 const msg = document.getElementById("message");
 const restartBtn = document.getElementById("restart-btn");
 const startScreen = document.getElementById("start-screen");
 const startBtn = document.getElementById("start-btn");
 
-// NUOVO: GESTIONE PULSANTE INIZIA (A prova di bomba)
+// START BUTTON HANDLER
 startBtn.addEventListener(
   "touchstart",
   (e) => {
-    e.stopPropagation(); // Evita che il tocco finisca sullo sfondo
-    e.preventDefault(); // Evita il doppio click fantasma
+    e.stopPropagation();
+    e.preventDefault();
 
-    // 1. Fullscreen Sicuro (dentro un try-catch per non far mai crashare l'app)
+    // 1. Safe Fullscreen
     try {
       const docEl = document.documentElement;
       const requestFS =
@@ -100,13 +89,13 @@ startBtn.addEventListener(
       if (requestFS) {
         requestFS
           .call(docEl)
-          .catch((err) => console.log("Fullscreen ignorato (normale su iOS)"));
+          .catch((err) => console.log("Fullscreen ignored (normal on iOS)"));
       }
     } catch (error) {
-      console.log("Il browser non supporta questa API", error);
+      console.log("Browser does not support Fullscreen API", error);
     }
 
-    // 2. Sblocca Motore Audio
+    // 2. Unlock Audio Engine
     if (!audioCtx)
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
@@ -122,14 +111,14 @@ startBtn.addEventListener(
       audioUnlocked = true;
     }
 
-    // 3. Piccola vibrazione di conferma
+    // 3. Small confirmation vibration
     if (navigator.vibrate) navigator.vibrate(50);
 
-    // 4. Avvia visivamente il gioco
-    startScreen.style.opacity = "0"; // Dissolvenza
+    // 4. Visually start the game
+    startScreen.style.opacity = "0";
     setTimeout(() => {
       startScreen.style.display = "none";
-      isGameActive = true; // Da ora in poi, lo schermo reagisce alle dita
+      isGameActive = true;
     }, 300);
   },
   { passive: false },
@@ -146,13 +135,12 @@ restartBtn.addEventListener(
   { passive: false },
 );
 
-// TOUCH HANDLER PRINCIPALE
+// MAIN TOUCH HANDLER
 document.addEventListener(
   "touchstart",
   (e) => {
     e.preventDefault();
 
-    // Se la schermata iniziale è ancora visibile, ignora i tocchi sul resto dello schermo
     if (!isGameActive) return;
     if (state === "ANIMATING" || state === "DONE") return;
 
@@ -249,7 +237,7 @@ function checkState() {
 // WINNER SELECTION
 function startSelection() {
   state = "ANIMATING";
-  msg.innerText = "State boni...";
+  msg.innerText = "Selecting..."; // Cambiato il copy
 
   let fingerArray = Array.from(document.querySelectorAll(".finger"));
   fingerArray.forEach((el) => el.classList.add("pulsing"));
@@ -262,7 +250,7 @@ function startSelection() {
       el.classList.remove("pulsing");
       if (index === winnerIndex) {
         el.classList.add("winner");
-        msg.innerText = "PRIMO DI TURNO!";
+        msg.innerText = "YOU GO FIRST!"; // Cambiato il copy
         playSound("win");
         if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
         restartBtn.style.display = "inline-flex";
@@ -281,5 +269,5 @@ function resetGame() {
   restartBtn.style.display = "none";
   document.querySelectorAll(".finger").forEach((el) => el.remove());
   fingers.clear();
-  msg.innerText = "Piazzate le dita";
+  msg.innerText = "Place your fingers"; // Cambiato il copy
 }
