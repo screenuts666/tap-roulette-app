@@ -38,16 +38,23 @@ function playSound(type) {
   }
 }
 
-// Cryptographically Secure Random Generator
+// Cryptographically Secure Random Generator (Now saves proof!)
 function getSecureRandomIndex(max) {
   const randomBuffer = new Uint32Array(1);
   window.crypto.getRandomValues(randomBuffer);
-  const randomFloat = randomBuffer[0] / (0xffffffff + 1);
-  return Math.floor(randomFloat * max);
+
+  const raw = randomBuffer[0];
+  const maxUint32 = 0xffffffff + 1;
+  const randomFloat = raw / maxUint32;
+  const index = Math.floor(randomFloat * max);
+
+  // Save math logs for the terminal flex
+  lastMathLog = { raw, maxUint32, float: randomFloat, max, index };
+
+  return index;
 }
 
 // GLOBAL VARIABLES
-// Color mana MTG palette
 const colors = [
   "#F9FAF8", // White
   "#0E68AB", // Blue
@@ -64,11 +71,18 @@ let state = "WAITING";
 let countdownInterval;
 let timeLeft = 5;
 let isGameActive = false;
+let lastMathLog = {}; // Stores the last random generation data
 
 const msg = document.getElementById("message");
 const restartBtn = document.getElementById("restart-btn");
 const startScreen = document.getElementById("start-screen");
 const startBtn = document.getElementById("start-btn");
+
+// Terminal Math Elements
+const mathBtn = document.getElementById("math-btn");
+const mathModal = document.getElementById("math-modal");
+const mathContent = document.getElementById("math-content");
+const closeMathBtn = document.getElementById("close-math-btn");
 
 // START BUTTON HANDLER
 startBtn.addEventListener(
@@ -237,7 +251,7 @@ function checkState() {
 // WINNER SELECTION
 function startSelection() {
   state = "ANIMATING";
-  msg.innerText = "Selecting..."; // Cambiato il copy
+  msg.innerText = "Selecting...";
 
   let fingerArray = Array.from(document.querySelectorAll(".finger"));
   fingerArray.forEach((el) => el.classList.add("pulsing"));
@@ -250,10 +264,13 @@ function startSelection() {
       el.classList.remove("pulsing");
       if (index === winnerIndex) {
         el.classList.add("winner");
-        msg.innerText = "YOU GO FIRST!"; // Cambiato il copy
+        msg.innerText = "YOU GO FIRST!";
         playSound("win");
         if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+
+        // Show restart and math flex buttons
         restartBtn.style.display = "inline-flex";
+        if (mathBtn) mathBtn.style.display = "block";
       } else {
         el.style.opacity = "0";
         setTimeout(() => el.remove(), 500);
@@ -266,8 +283,58 @@ function startSelection() {
 function resetGame() {
   clearInterval(countdownInterval);
   state = "WAITING";
+
+  // Hide buttons
   restartBtn.style.display = "none";
+  if (mathBtn) mathBtn.style.display = "none";
+
   document.querySelectorAll(".finger").forEach((el) => el.remove());
   fingers.clear();
-  msg.innerText = "Place your fingers"; // Cambiato il copy
+  msg.innerText = "Place your fingers";
+}
+
+// --- TERMINAL MATH FLEX LOGIC ---
+if (mathBtn && mathModal && closeMathBtn) {
+  mathBtn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      // Build the super nerdy terminal output
+      mathContent.innerHTML = `
+      > FETCHING HARDWARE NOISE...<br>
+      > Uint32Array generated:<br>
+      > [<span class="highlight">${lastMathLog.raw}</span>]<br>
+      <br>
+      > NORMALIZING FLOAT:<br>
+      > ${lastMathLog.raw} / ${lastMathLog.maxUint32}<br>
+      > = <span class="highlight">${lastMathLog.float.toFixed(8)}...</span><br>
+      <br>
+      > MULTIPLYING BY PLAYERS (${lastMathLog.max}):<br>
+      > Result: ${(lastMathLog.float * lastMathLog.max).toFixed(6)}<br>
+      <br>
+      > FLOORING VALUE:<br>
+      > WINNER INDEX = <span class="highlight">${lastMathLog.index}</span><br>
+      <br>
+      > STATUS: <span style="color:#34C759">CRYPTOGRAPHICALLY FAIR</span>
+    `;
+
+      mathModal.style.display = "flex";
+      setTimeout(() => (mathModal.style.opacity = "1"), 10);
+    },
+    { passive: false },
+  );
+
+  closeMathBtn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      mathModal.style.opacity = "0";
+      setTimeout(() => (mathModal.style.display = "none"), 200);
+    },
+    { passive: false },
+  );
 }

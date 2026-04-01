@@ -35,23 +35,23 @@
       <button id="start-btn">TAP TO PLAY</button>
     </div>
 
-    <div id="ui-layer">
+   <div id="ui-layer">
       <h1 id="message">Place your fingers</h1>
       <button id="restart-btn" style="display: none">
-        <svg
-          viewBox="0 0 24 24"
-          width="36"
-          height="36"
-          stroke="currentColor"
-          stroke-width="2.5"
-          fill="none"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"></polyline>
           <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
         </svg>
       </button>
+      <button id="math-btn" style="display: none">INSPECT ENTROPY</button>
+    </div>
+
+    <div id="math-modal" style="display: none;">
+      <div class="math-box">
+        <h2>QUANTUM ENTROPY LOG</h2>
+        <div id="math-content"></div>
+        <button id="close-math-btn">CLOSE</button>
+      </div>
     </div>
 
     <script src="script.js"></script>
