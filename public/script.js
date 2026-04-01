@@ -1,23 +1,23 @@
-// --- MOTORE AUDIO E VIBRAZIONE ---
+// --- AUDIO ENGINE AND VIBRATION ---
 let audioCtx;
-let audioUnlocked = false; // Aggiungiamo una variabile per tracciare lo sblocco
+let audioUnlocked = false; // Flag to track if audio context has been unlocked
 
 function playSound(type) {
-  // 1. Inizializza il contesto se non esiste
+  // 1. Initialize audio context if it doesn't exist
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
 
-  // 2. Risveglia l'audio se il browser lo ha messo in pausa
+  // 2. Resume audio if browser suspended it
   if (audioCtx.state === "suspended") {
     audioCtx.resume();
   }
 
-  // 3. IL TRUCCO: Al primissimo tocco, spariamo un suono muto per sbloccare iOS/Android
+  // 3. TRICK: On first touch, play silent sound to unlock iOS/Android audio
   if (!audioUnlocked) {
     const dummyOsc = audioCtx.createOscillator();
     const dummyGain = audioCtx.createGain();
-    dummyGain.gain.value = 0; // Volume a ZERO
+    dummyGain.gain.value = 0; // Mute volume
     dummyOsc.connect(dummyGain);
     dummyGain.connect(audioCtx.destination);
     dummyOsc.start();
@@ -25,7 +25,7 @@ function playSound(type) {
     audioUnlocked = true;
   }
 
-  // 4. Creazione del suono reale
+  // 4. Create actual sound
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
@@ -58,7 +58,7 @@ function playSound(type) {
   }
 }
 
-// Generatore Crittograficamente Sicuro basato su Entropia Hardware
+// Cryptographically Secure Random Generator based on Hardware Entropy
 function getSecureRandomIndex(max) {
   const randomBuffer = new Uint32Array(1);
   window.crypto.getRandomValues(randomBuffer);
@@ -66,7 +66,7 @@ function getSecureRandomIndex(max) {
   return Math.floor(randomFloat * max);
 }
 
-// VARIABILI GLOBALI
+// GLOBAL VARIABLES
 const colors = [
   "#FF3B30",
   "#34C759",
@@ -85,18 +85,18 @@ let timeLeft = 5;
 const msg = document.getElementById("message");
 const restartBtn = document.getElementById("restart-btn");
 
-// GESTIONE PULSANTE RESTART
+// RESTART BUTTON HANDLER
 restartBtn.addEventListener(
   "touchstart",
   (e) => {
-    e.stopPropagation(); // Evita che premere il tasto crei un nuovo pallino
+    e.stopPropagation(); // Prevents pressing the button from creating a new dot
     e.preventDefault();
     resetGame();
   },
   { passive: false },
 );
 
-// GESTIONE TOCCHI
+// TOUCH HANDLER
 document.addEventListener(
   "touchstart",
   (e) => {
@@ -104,7 +104,7 @@ document.addEventListener(
 
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {
-        console.log("Fullscreen ignorato");
+        console.log("Fullscreen ignored");
       });
     }
 
@@ -127,7 +127,7 @@ document.addEventListener(
       colorIdx++;
     }
 
-    // Audio e vibrazione al tocco
+    // Audio and vibration on touch
     playSound("pop");
     if (navigator.vibrate) navigator.vibrate(50);
 
@@ -136,7 +136,7 @@ document.addEventListener(
   { passive: false },
 );
 
-// GESTIONE MOVIMENTO
+// MOVEMENT HANDLER
 document.addEventListener(
   "touchmove",
   (e) => {
@@ -155,7 +155,7 @@ document.addEventListener(
   { passive: false },
 );
 
-// GESTIONE RIMOZIONE DITA
+// FINGER REMOVAL HANDLER
 const removeFinger = (e) => {
   e.preventDefault();
 
@@ -173,13 +173,13 @@ const removeFinger = (e) => {
   if (state === "WAITING" || state === "COUNTDOWN") {
     if (fingers.size < 2) resetGame();
   }
-  // Se state === 'DONE', ora non facciamo più nulla in automatico, aspettiamo il tasto!
+  // If state is 'DONE', we no longer do anything automatically, we wait for the button!
 };
 
 document.addEventListener("touchend", removeFinger, { passive: false });
 document.addEventListener("touchcancel", removeFinger, { passive: false });
 
-// CONTROLLO STATO
+// STATE CHECK
 function checkState() {
   if (fingers.size > 1 && state === "WAITING") {
     state = "COUNTDOWN";
@@ -189,7 +189,7 @@ function checkState() {
     countdownInterval = setInterval(() => {
       timeLeft--;
 
-      // Audio e vibrazione per il timer
+      // Audio and vibration for the timer
       playSound("tic");
       if (navigator.vibrate) navigator.vibrate(20);
 
@@ -203,7 +203,7 @@ function checkState() {
   }
 }
 
-// ESTRAZIONE VINCITORE
+// WINNER SELECTION
 function startSelection() {
   state = "ANIMATING";
   msg.innerText = "Fermi tutti...";
@@ -221,11 +221,11 @@ function startSelection() {
         el.classList.add("winner");
         msg.innerText = "INIZI TU!";
 
-        // Audio vittoria e vibrazione tripla!
+        // Victory audio and triple vibration!
         playSound("win");
         if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
 
-        // Mostra il pulsante di riavvio
+        // Show the restart button
         restartBtn.style.display = "inline-flex";
       } else {
         el.style.opacity = "0";
@@ -235,12 +235,12 @@ function startSelection() {
   }, 2000);
 }
 
-// RESET TOTALE
+// FULL RESET
 function resetGame() {
   clearInterval(countdownInterval);
   state = "WAITING";
 
-  // Nascondi il pulsante di riavvio
+  // Hide the restart button
   restartBtn.style.display = "none";
 
   document.querySelectorAll(".finger").forEach((el) => el.remove());
