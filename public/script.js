@@ -1,31 +1,11 @@
 // --- AUDIO ENGINE AND VIBRATION ---
 let audioCtx;
-let audioUnlocked = false; // Flag to track if audio context has been unlocked
+let audioUnlocked = false;
 
 function playSound(type) {
-  // 1. Initialize audio context if it doesn't exist
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+  if (!audioCtx) return; // Sicurezza nel caso non sia ancora sbloccato
+  if (audioCtx.state === "suspended") audioCtx.resume();
 
-  // 2. Resume audio if browser suspended it
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
-
-  // 3. TRICK: On first touch, play silent sound to unlock iOS/Android audio
-  if (!audioUnlocked) {
-    const dummyOsc = audioCtx.createOscillator();
-    const dummyGain = audioCtx.createGain();
-    dummyGain.gain.value = 0; // Mute volume
-    dummyOsc.connect(dummyGain);
-    dummyGain.connect(audioCtx.destination);
-    dummyOsc.start();
-    dummyOsc.stop(audioCtx.currentTime + 0.001);
-    audioUnlocked = true;
-  }
-
-  // 4. Create actual sound
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
@@ -58,7 +38,7 @@ function playSound(type) {
   }
 }
 
-// Cryptographically Secure Random Generator based on Hardware Entropy
+// Cryptographically Secure Random Generator
 function getSecureRandomIndex(max) {
   const randomBuffer = new Uint32Array(1);
   window.crypto.getRandomValues(randomBuffer);
@@ -67,47 +47,113 @@ function getSecureRandomIndex(max) {
 }
 
 // GLOBAL VARIABLES
+// const colors = [
+//   "#FF3B30",
+//   "#34C759",
+//   "#007AFF",
+//   "#FFCC00",
+//   "#AF52DE",
+//   "#FF9500",
+//   "#32ADE6",
+//   "#FF2D55",
+// ];
+
+// Color mana MTG
 const colors = [
-  "#FF3B30",
-  "#34C759",
-  "#007AFF",
-  "#FFCC00",
-  "#AF52DE",
-  "#FF9500",
-  "#32ADE6",
-  "#FF2D55",
+  "#F9FAF8", // White Mana
+  "#0E68AB", // Blue Mana
+  "#A64DFF", // Black Mana
+  "#D3202A", // Red Mana
+  "#00733E", // Green Mana
+  "#00E5FF", // Colorless/Artifact (Azzurro ciano)
+  "#F6C644", // Gold/Multicolor
 ];
+
 let colorIdx = 0;
 let fingers = new Map();
 let state = "WAITING";
 let countdownInterval;
 let timeLeft = 5;
+let isGameActive = false; // NUOVO: Blocca i tocchi finché non premi INIZIA
+
 const msg = document.getElementById("message");
 const restartBtn = document.getElementById("restart-btn");
+const startScreen = document.getElementById("start-screen");
+const startBtn = document.getElementById("start-btn");
+
+// NUOVO: GESTIONE PULSANTE INIZIA (A prova di bomba)
+startBtn.addEventListener(
+  "touchstart",
+  (e) => {
+    e.stopPropagation(); // Evita che il tocco finisca sullo sfondo
+    e.preventDefault(); // Evita il doppio click fantasma
+
+    // 1. Fullscreen Sicuro (dentro un try-catch per non far mai crashare l'app)
+    try {
+      const docEl = document.documentElement;
+      const requestFS =
+        docEl.requestFullscreen ||
+        docEl.webkitRequestFullscreen ||
+        docEl.mozRequestFullScreen ||
+        docEl.msRequestFullscreen;
+
+      if (requestFS) {
+        requestFS
+          .call(docEl)
+          .catch((err) => console.log("Fullscreen ignorato (normale su iOS)"));
+      }
+    } catch (error) {
+      console.log("Il browser non supporta questa API", error);
+    }
+
+    // 2. Sblocca Motore Audio
+    if (!audioCtx)
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    if (!audioUnlocked) {
+      const dummyOsc = audioCtx.createOscillator();
+      const dummyGain = audioCtx.createGain();
+      dummyGain.gain.value = 0;
+      dummyOsc.connect(dummyGain);
+      dummyGain.connect(audioCtx.destination);
+      dummyOsc.start();
+      dummyOsc.stop(audioCtx.currentTime + 0.001);
+      audioUnlocked = true;
+    }
+
+    // 3. Piccola vibrazione di conferma
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    // 4. Avvia visivamente il gioco
+    startScreen.style.opacity = "0"; // Dissolvenza
+    setTimeout(() => {
+      startScreen.style.display = "none";
+      isGameActive = true; // Da ora in poi, lo schermo reagisce alle dita
+    }, 300);
+  },
+  { passive: false },
+);
 
 // RESTART BUTTON HANDLER
 restartBtn.addEventListener(
   "touchstart",
   (e) => {
-    e.stopPropagation(); // Prevents pressing the button from creating a new dot
+    e.stopPropagation();
     e.preventDefault();
     resetGame();
   },
   { passive: false },
 );
 
-// TOUCH HANDLER
+// TOUCH HANDLER PRINCIPALE
 document.addEventListener(
   "touchstart",
   (e) => {
     e.preventDefault();
 
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {
-        console.log("Fullscreen ignored");
-      });
-    }
-
+    // Se la schermata iniziale è ancora visibile, ignora i tocchi sul resto dello schermo
+    if (!isGameActive) return;
     if (state === "ANIMATING" || state === "DONE") return;
 
     for (let i = 0; i < e.changedTouches.length; i++) {
@@ -127,7 +173,6 @@ document.addEventListener(
       colorIdx++;
     }
 
-    // Audio and vibration on touch
     playSound("pop");
     if (navigator.vibrate) navigator.vibrate(50);
 
@@ -141,7 +186,7 @@ document.addEventListener(
   "touchmove",
   (e) => {
     e.preventDefault();
-    if (state === "ANIMATING" || state === "DONE") return;
+    if (!isGameActive || state === "ANIMATING" || state === "DONE") return;
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
@@ -158,6 +203,7 @@ document.addEventListener(
 // FINGER REMOVAL HANDLER
 const removeFinger = (e) => {
   e.preventDefault();
+  if (!isGameActive) return;
 
   for (let i = 0; i < e.changedTouches.length; i++) {
     const touch = e.changedTouches[i];
@@ -173,7 +219,6 @@ const removeFinger = (e) => {
   if (state === "WAITING" || state === "COUNTDOWN") {
     if (fingers.size < 2) resetGame();
   }
-  // If state is 'DONE', we no longer do anything automatically, we wait for the button!
 };
 
 document.addEventListener("touchend", removeFinger, { passive: false });
@@ -188,8 +233,6 @@ function checkState() {
 
     countdownInterval = setInterval(() => {
       timeLeft--;
-
-      // Audio and vibration for the timer
       playSound("tic");
       if (navigator.vibrate) navigator.vibrate(20);
 
@@ -206,7 +249,7 @@ function checkState() {
 // WINNER SELECTION
 function startSelection() {
   state = "ANIMATING";
-  msg.innerText = "Fermi tutti...";
+  msg.innerText = "State boni...";
 
   let fingerArray = Array.from(document.querySelectorAll(".finger"));
   fingerArray.forEach((el) => el.classList.add("pulsing"));
@@ -219,13 +262,9 @@ function startSelection() {
       el.classList.remove("pulsing");
       if (index === winnerIndex) {
         el.classList.add("winner");
-        msg.innerText = "INIZI TU!";
-
-        // Victory audio and triple vibration!
+        msg.innerText = "PRIMO DI TURNO!";
         playSound("win");
         if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-
-        // Show the restart button
         restartBtn.style.display = "inline-flex";
       } else {
         el.style.opacity = "0";
@@ -239,12 +278,8 @@ function startSelection() {
 function resetGame() {
   clearInterval(countdownInterval);
   state = "WAITING";
-
-  // Hide the restart button
   restartBtn.style.display = "none";
-
   document.querySelectorAll(".finger").forEach((el) => el.remove());
   fingers.clear();
-
-  msg.innerText = "Tocca lo schermo!";
+  msg.innerText = "Piazzate le dita";
 }

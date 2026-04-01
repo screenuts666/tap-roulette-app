@@ -7,7 +7,7 @@ html {
   height: 100%;
   background-color: #1a1a1a;
   color: white;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Rajdhani", sans-serif;
   overflow: hidden;
   touch-action: none;
   user-select: none;
@@ -23,7 +23,7 @@ html {
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  pointer-events: none; /* I tocchi base passano attraverso */
+  pointer-events: none;
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -46,7 +46,7 @@ h1 {
   width: 70px;
   height: 70px;
   cursor: pointer;
-  pointer-events: auto; /* Riabilita il tocco solo per il pulsante */
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -72,9 +72,12 @@ h1 {
   opacity: 0.9;
   transition: opacity 0.3s;
   pointer-events: none;
+
+  box-shadow:
+    0 0 20px currentColor,
+    inset 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
-/* Animazione pre-selezione */
 .pulsing {
   animation: pulse 0.3s infinite alternate;
 }
@@ -89,10 +92,84 @@ h1 {
   }
 }
 
-/* Animazione del cerchio vincitore */
 .winner {
   transform: translate(-50%, -50%) scale(1.5);
   box-shadow: 0 0 50px currentColor;
   z-index: 50;
   transition: all 0.5s ease-out;
+}
+
+/* --- NUOVO: SCHERMATA INIZIALE --- */
+#start-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Sfondo radiale profondo: dal grigio scuro al nero assoluto */
+  background: radial-gradient(circle at center, #2a2a35 0%, #0d0d0d 100%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  transition: opacity 0.6s ease-out; /* Dissolvenza più lenta e drammatica */
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.start-icon {
+  color: #a64dff; /* Un tocco di mana viola/arcano */
+  filter: drop-shadow(0 0 15px rgba(166, 77, 255, 0.4));
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700; /* Font più sottile */
+  letter-spacing: 12px; /* Molto spazio tra le lettere per eleganza */
+  color: #ffffff;
+  margin: 0;
+  margin-right: -12px; /* Compensa il letter-spacing extra a destra */
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 4px;
+  color: #888;
+  margin: 0;
+  margin-right: -4px;
+  text-transform: uppercase;
+}
+
+#start-btn {
+  background: transparent; /* Niente più verde fluo */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  padding: 15px 40px;
+  border-radius: 2px; /* Taglio netto e moderno, niente effetto pillola */
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#start-btn:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }

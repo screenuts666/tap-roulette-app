@@ -17,11 +17,37 @@
     />
     <meta name="apple-mobile-web-app-title" content="Tap Roulette" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div id="start-screen">
+      <div class="logo-container">
+        <svg
+          viewBox="0 0 24 24"
+          width="60"
+          height="60"
+          stroke="currentColor"
+          stroke-width="1"
+          fill="none"
+          class="start-icon"
+        >
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"></polygon>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <h1 class="title">INITIATIVE</h1>
+        <p class="subtitle">Scegli il primo giocatore</p>
+      </div>
+      <button id="start-btn">PREPARA IL TAVOLO</button>
+    </div>
     <div id="ui-layer">
-      <h1 id="message">Tocca lo schermo!</h1>
+      <h1 id="message">Piazzate le dita</h1>
       <button id="restart-btn" style="display: none">
         <svg
           viewBox="0 0 24 24"
