@@ -4,7 +4,7 @@ import {
   initSettingsListeners,
 } from "./settings.js";
 import { playSound, triggerVibration, unlockAudio } from "./audio.js";
-import { getSecureRandomIndex, populateMathContent } from "./random.js";
+import { getSecureRandomIndex, populateMathContent, lastMathLog } from "./random.js";
 import { clearParticles, particles, Particle } from "./particles.js";
 import {
   addTrail,
@@ -195,6 +195,10 @@ function startSelection() {
           setTimeout(() => el.remove(), 500);
         }
       });
+
+      // Save mode for math log
+      lastMathLog.mode = "classic";
+
     } else if (gameMode === GameMode.TEAMS) {
       const touchIds = Array.from(fingers.keys());
       secureShuffle(touchIds);
@@ -215,9 +219,12 @@ function startSelection() {
         teams[idx % numTeams].push(id);
       });
 
+      const teamsGroups = {};
+
       teams.forEach((teamPlayers, teamIdx) => {
         const color = teamColors[teamIdx];
         const label = teamLabels[teamIdx];
+        teamsGroups[label] = [];
 
         teamPlayers.forEach((id, playerIdx) => {
           const el = fingers.get(id);
@@ -227,6 +234,8 @@ function startSelection() {
             el.style.setProperty("--finger-color", color);
             el.style.borderColor = color;
             el.innerText = `${label}${playerIdx + 1}`;
+            
+            teamsGroups[label].push(`${label}${playerIdx + 1}`);
 
             // Update corresponding trail color!
             updateTrailColor(id, color);
@@ -239,21 +248,30 @@ function startSelection() {
         });
       });
 
+      // Save log data for entropy inspector
+      lastMathLog.mode = "teams";
+      lastMathLog.numTeams = numTeams;
+      lastMathLog.teamsGroups = teamsGroups;
+
       msg.innerText = "TEAMS ASSIGNED!";
       playSound("win");
       triggerVibration([300, 100, 300]);
 
       restartBtn.style.display = "inline-flex";
       if (mathBtn) mathBtn.style.display = "block";
+
     } else if (gameMode === GameMode.ORDER) {
       // Assign playing order
       const touchIds = Array.from(fingers.keys());
       secureShuffle(touchIds);
 
+      const shuffledOrder = [];
+
       touchIds.forEach((id, idx) => {
         const el = fingers.get(id);
         el.classList.remove("pulsing");
         el.innerText = idx + 1;
+        shuffledOrder.push(`Player ${idx + 1}`);
 
         // Spawn order explosion
         const x = parseFloat(el.style.left);
@@ -261,6 +279,10 @@ function startSelection() {
         const color = el.style.backgroundColor;
         triggerExplosion(x, y, color);
       });
+
+      // Save log data for entropy inspector
+      lastMathLog.mode = "order";
+      lastMathLog.shuffledOrder = shuffledOrder;
 
       msg.innerText = "ORDER DECIDED!";
       playSound("win");
