@@ -1,60 +1,10 @@
-// --- AUDIO ENGINE AND VIBRATION ---
-let audioCtx;
-let audioUnlocked = false;
+import { settings, applySettingsToUI, initSettingsListeners } from './js/settings.js';
+import { playSound, triggerVibration, unlockAudio } from './js/audio.js';
+import { getSecureRandomIndex, populateMathContent } from './js/random.js';
+import { clearParticles } from './js/particles.js';
+import { addTrail, updateTrail, deactivateTrail, clearTrails } from './js/trails.js';
 
-function playSound(type) {
-  if (!audioCtx) return;
-  if (audioCtx.state === "suspended") audioCtx.resume();
-
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  if (type === "pop") {
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-    gain.gain.setValueAtTime(1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-  } else if (type === "tic") {
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
-  } else if (type === "win") {
-    osc.type = "square";
-    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-    osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
-    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.5);
-  }
-}
-
-// Cryptographically Secure Random Generator (Now saves proof!)
-function getSecureRandomIndex(max) {
-  const randomBuffer = new Uint32Array(1);
-  window.crypto.getRandomValues(randomBuffer);
-
-  const raw = randomBuffer[0];
-  const maxUint32 = 0xffffffff + 1;
-  const randomFloat = raw / maxUint32;
-  const index = Math.floor(randomFloat * max);
-
-  // Save math logs for the terminal flex
-  lastMathLog = { raw, maxUint32, float: randomFloat, max, index };
-
-  return index;
-}
-
-// GLOBAL VARIABLES
+// GLOBAL VARIABLES & PALETTE
 const colors = [
   "#F9FAF8", // White
   "#0E68AB", // Blue
@@ -69,20 +19,26 @@ let colorIdx = 0;
 let fingers = new Map();
 let state = "WAITING";
 let countdownInterval;
-let timeLeft = 5;
+let timeLeft = settings.countdown;
 let isGameActive = false;
-let lastMathLog = {}; // Stores the last random generation data
 
+// DOM Selectors
 const msg = document.getElementById("message");
 const restartBtn = document.getElementById("restart-btn");
 const startScreen = document.getElementById("start-screen");
 const startBtn = document.getElementById("start-btn");
 
-// Terminal Math Elements
 const mathBtn = document.getElementById("math-btn");
 const mathModal = document.getElementById("math-modal");
-const mathContent = document.getElementById("math-content");
 const closeMathBtn = document.getElementById("close-math-btn");
+
+const settingsBtn = document.getElementById("settings-btn");
+const settingsModal = document.getElementById("settings-modal");
+const closeSettingsBtn = document.getElementById("close-settings-btn");
+const homeBtn = document.getElementById("home-btn");
+
+// Initialize settings and events
+initSettingsListeners();
 
 // START BUTTON HANDLER
 startBtn.addEventListener(
@@ -91,7 +47,7 @@ startBtn.addEventListener(
     e.stopPropagation();
     e.preventDefault();
 
-    // 1. Safe Fullscreen
+    // Safe Fullscreen
     try {
       const docEl = document.documentElement;
       const requestFS =
@@ -109,30 +65,18 @@ startBtn.addEventListener(
       console.log("Browser does not support Fullscreen API", error);
     }
 
-    // 2. Unlock Audio Engine
-    if (!audioCtx)
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    // Unlock Audio Context
+    unlockAudio();
 
-    if (!audioUnlocked) {
-      const dummyOsc = audioCtx.createOscillator();
-      const dummyGain = audioCtx.createGain();
-      dummyGain.gain.value = 0;
-      dummyOsc.connect(dummyGain);
-      dummyGain.connect(audioCtx.destination);
-      dummyOsc.start();
-      dummyOsc.stop(audioCtx.currentTime + 0.001);
-      audioUnlocked = true;
-    }
+    // Small confirmation vibration
+    triggerVibration(50);
 
-    // 3. Small confirmation vibration
-    if (navigator.vibrate) navigator.vibrate(50);
-
-    // 4. Visually start the game
+    // Visually start the game
     startScreen.style.opacity = "0";
     setTimeout(() => {
       startScreen.style.display = "none";
       isGameActive = true;
+      updateHomeButtonVisibility();
     }, 300);
   },
   { passive: false },
@@ -153,10 +97,15 @@ restartBtn.addEventListener(
 document.addEventListener(
   "touchstart",
   (e) => {
-    e.preventDefault();
-
     if (!isGameActive) return;
     if (state === "ANIMATING" || state === "DONE") return;
+
+    // Don't prevent default on interactive UI buttons
+    if (e.target.closest("#restart-btn") || e.target.closest("#math-btn") || e.target.closest("#home-btn")) {
+      return;
+    }
+
+    e.preventDefault();
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
@@ -173,12 +122,16 @@ document.addEventListener(
       document.body.appendChild(el);
       fingers.set(touch.identifier, el);
       colorIdx++;
+
+      // Register and start trail tracking
+      addTrail(touch.identifier, touch.clientX, touch.clientY, currentColor);
     }
 
     playSound("pop");
-    if (navigator.vibrate) navigator.vibrate(50);
+    triggerVibration(50);
 
     checkState();
+    updateHomeButtonVisibility();
   },
   { passive: false },
 );
@@ -187,8 +140,14 @@ document.addEventListener(
 document.addEventListener(
   "touchmove",
   (e) => {
-    e.preventDefault();
     if (!isGameActive || state === "ANIMATING" || state === "DONE") return;
+
+    // Don't prevent default on interactive UI elements
+    if (e.target.closest("#restart-btn") || e.target.closest("#math-btn") || e.target.closest("#home-btn")) {
+      return;
+    }
+
+    e.preventDefault();
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
@@ -196,6 +155,9 @@ document.addEventListener(
         const el = fingers.get(touch.identifier);
         el.style.left = touch.clientX + "px";
         el.style.top = touch.clientY + "px";
+
+        // Update trail path with the new finger position
+        updateTrail(touch.identifier, touch.clientX, touch.clientY);
       }
     }
   },
@@ -204,8 +166,13 @@ document.addEventListener(
 
 // FINGER REMOVAL HANDLER
 const removeFinger = (e) => {
-  e.preventDefault();
   if (!isGameActive) return;
+
+  if (e.target.closest("#restart-btn") || e.target.closest("#math-btn") || e.target.closest("#home-btn")) {
+    return;
+  }
+
+  e.preventDefault();
 
   for (let i = 0; i < e.changedTouches.length; i++) {
     const touch = e.changedTouches[i];
@@ -216,11 +183,14 @@ const removeFinger = (e) => {
       }
       fingers.delete(touch.identifier);
     }
+    // Deactivate the trail so it fades out smoothly
+    deactivateTrail(touch.identifier);
   }
 
   if (state === "WAITING" || state === "COUNTDOWN") {
     if (fingers.size < 2) resetGame();
   }
+  updateHomeButtonVisibility();
 };
 
 document.addEventListener("touchend", removeFinger, { passive: false });
@@ -230,13 +200,13 @@ document.addEventListener("touchcancel", removeFinger, { passive: false });
 function checkState() {
   if (fingers.size > 1 && state === "WAITING") {
     state = "COUNTDOWN";
-    timeLeft = 5;
+    timeLeft = settings.countdown;
     msg.innerText = timeLeft;
 
     countdownInterval = setInterval(() => {
       timeLeft--;
       playSound("tic");
-      if (navigator.vibrate) navigator.vibrate(20);
+      triggerVibration(20);
 
       if (timeLeft > 0) {
         msg.innerText = timeLeft;
@@ -252,6 +222,7 @@ function checkState() {
 function startSelection() {
   state = "ANIMATING";
   msg.innerText = "Selecting...";
+  updateHomeButtonVisibility();
 
   let fingerArray = Array.from(document.querySelectorAll(".finger"));
   fingerArray.forEach((el) => el.classList.add("pulsing"));
@@ -266,7 +237,7 @@ function startSelection() {
         el.classList.add("winner");
         msg.innerText = "YOU GO FIRST!";
         playSound("win");
-        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        triggerVibration([300, 100, 300]);
 
         // Show restart and math flex buttons
         restartBtn.style.display = "inline-flex";
@@ -276,6 +247,7 @@ function startSelection() {
         setTimeout(() => el.remove(), 500);
       }
     });
+    updateHomeButtonVisibility();
   }, 2000);
 }
 
@@ -291,6 +263,12 @@ function resetGame() {
   document.querySelectorAll(".finger").forEach((el) => el.remove());
   fingers.clear();
   msg.innerText = "Place your fingers";
+
+  // Reset trails, particles, and canvas
+  clearTrails();
+  clearParticles();
+
+  updateHomeButtonVisibility();
 }
 
 // --- TERMINAL MATH FLEX LOGIC ---
@@ -302,23 +280,7 @@ if (mathBtn && mathModal && closeMathBtn) {
       e.preventDefault();
 
       // Build the super nerdy terminal output
-      mathContent.innerHTML = `
-      > FETCHING HARDWARE NOISE...<br>
-      > Uint32Array generated:<br>
-      > [<span class="highlight">${lastMathLog.raw}</span>]<br>
-      <br>
-      > NORMALIZING FLOAT:<br>
-      > ${lastMathLog.raw} / ${lastMathLog.maxUint32}<br>
-      > = <span class="highlight">${lastMathLog.float.toFixed(8)}...</span><br>
-      <br>
-      > MULTIPLYING BY PLAYERS (${lastMathLog.max}):<br>
-      > Result: ${(lastMathLog.float * lastMathLog.max).toFixed(6)}<br>
-      <br>
-      > FLOORING VALUE:<br>
-      > WINNER INDEX = <span class="highlight">${lastMathLog.index}</span><br>
-      <br>
-      > STATUS: <span style="color:#34C759">CRYPTOGRAPHICALLY FAIR</span>
-    `;
+      populateMathContent();
 
       mathModal.style.display = "flex";
       setTimeout(() => (mathModal.style.opacity = "1"), 10);
@@ -334,6 +296,67 @@ if (mathBtn && mathModal && closeMathBtn) {
 
       mathModal.style.opacity = "0";
       setTimeout(() => (mathModal.style.display = "none"), 200);
+    },
+    { passive: false },
+  );
+}
+
+// HOME BUTTON VISIBILITY
+function updateHomeButtonVisibility() {
+  if (isGameActive && state === "WAITING" && fingers.size === 0) {
+    homeBtn.classList.add("visible");
+    homeBtn.style.display = "flex";
+  } else {
+    homeBtn.classList.remove("visible");
+    setTimeout(() => {
+      if (!homeBtn.classList.contains("visible")) {
+        homeBtn.style.display = "none";
+      }
+    }, 300);
+  }
+}
+
+// HOME BUTTON CLICK
+if (homeBtn) {
+  homeBtn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      isGameActive = false;
+      resetGame();
+
+      startScreen.style.display = "flex";
+      setTimeout(() => {
+        startScreen.style.opacity = "1";
+      }, 10);
+    },
+    { passive: false },
+  );
+}
+
+// SETTINGS PANEL INTERACTIONS
+if (settingsBtn && settingsModal && closeSettingsBtn) {
+  settingsBtn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      applySettingsToUI();
+      settingsModal.style.display = "flex";
+      setTimeout(() => (settingsModal.style.opacity = "1"), 10);
+    },
+    { passive: false },
+  );
+
+  closeSettingsBtn.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      settingsModal.style.opacity = "0";
+      setTimeout(() => (settingsModal.style.display = "none"), 200);
     },
     { passive: false },
   );

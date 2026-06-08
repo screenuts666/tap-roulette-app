@@ -1,0 +1,219 @@
+/* =========================================
+   6. TRAIL CANVAS STYLING
+   ========================================= */
+#trail-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Below fingers but above background */
+  pointer-events: none;
+}
+
+/* =========================================
+   7. SETTINGS AND HOME BUTTON STYLING
+   ========================================= */
+#settings-btn {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9CA3AF;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  z-index: 210; /* Above start screen contents */
+  -webkit-tap-highlight-color: transparent;
+}
+#settings-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: scale(0.92);
+}
+
+#settings-modal {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(13, 14, 18, 0.95);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.settings-box {
+  background: #111318;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 30px;
+  width: 100%;
+  max-width: 350px;
+  pointer-events: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.settings-box h2 {
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 4px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #d1d5db;
+}
+
+.setting-item.flex-column {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #d1d5db;
+}
+
+#timer-val {
+  color: #00E5FF;
+  font-weight: bold;
+}
+
+/* Premium Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #374151;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #00E5FF; /* Cyan accent matching math highlight */
+}
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* Custom Range Slider */
+#timer-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #374151;
+  outline: none;
+  margin: 10px 0;
+}
+#timer-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #00E5FF;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+#timer-slider::-webkit-slider-thumb:active {
+  transform: scale(1.3);
+}
+
+#close-settings-btn {
+  background: #374151;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  width: 100%;
+  font-weight: 700;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+#close-settings-btn:active {
+  background: #4B5563;
+}
+
+#home-btn {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9CA3AF;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.3s, transform 0.3s, color 0.2s;
+  z-index: 150; /* Above trails, below start screen */
+  opacity: 0;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#home-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+#home-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: scale(0.92);
+}
