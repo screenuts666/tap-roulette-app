@@ -44,13 +44,14 @@ export function applySettingsToUI() {
   const vibrateToggle = document.getElementById("vibrate-toggle");
   const timerSlider = document.getElementById("timer-slider");
   const timerVal = document.getElementById("timer-val");
-  const themeSelect = document.getElementById("theme-select");
   
   if (soundToggle) soundToggle.checked = settings.sound;
   if (vibrateToggle) vibrateToggle.checked = settings.vibration;
   if (timerSlider) timerSlider.value = settings.countdown;
   if (timerVal) timerVal.innerText = settings.countdown + "s";
-  if (themeSelect) themeSelect.value = settings.audioTheme;
+  
+  const activeRadio = document.querySelector(`input[name="audio-theme"][value="${settings.audioTheme}"]`);
+  if (activeRadio) activeRadio.checked = true;
 }
 
 // Initialize settings listeners
@@ -59,7 +60,6 @@ export function initSettingsListeners() {
   const vibrateToggle = document.getElementById("vibrate-toggle");
   const timerSlider = document.getElementById("timer-slider");
   const timerVal = document.getElementById("timer-val");
-  const themeSelect = document.getElementById("theme-select");
 
   if (soundToggle) {
     soundToggle.addEventListener("change", (e) => {
@@ -86,10 +86,12 @@ export function initSettingsListeners() {
     });
   }
 
-  if (themeSelect) {
-    themeSelect.addEventListener("change", (e) => {
+  // Bind radio buttons list
+  const themeRadios = document.querySelectorAll(`input[name="audio-theme"]`);
+  themeRadios.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
       settings.audioTheme = e.target.value;
       saveSettings();
     });
-  }
+  });
 }
