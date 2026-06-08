@@ -106,11 +106,39 @@
             <div class="slider-label">
               <span>Audio Theme</span>
             </div>
-            <select id="theme-select" class="theme-dropdown">
-              <option value="minimal">Minimal (Default)</option>
-              <option value="retro">Retro 8-Bit</option>
-              <option value="scifi">Cyberpunk Sci-Fi</option>
-            </select>
+            <div class="audio-theme-selector">
+              <label class="theme-card">
+                <input type="radio" name="audio-theme" value="minimal" style="display: none;" checked>
+                <div class="theme-card-content">
+                  <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span class="theme-title">Minimal</span>
+                </div>
+              </label>
+              <label class="theme-card">
+                <input type="radio" name="audio-theme" value="retro" style="display: none;">
+                <div class="theme-card-content">
+                  <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                    <path d="M12 12h.01"></path>
+                    <path d="M17 12h.01"></path>
+                    <path d="M6 12h4M8 10v4"></path>
+                  </svg>
+                  <span class="theme-title">Retro</span>
+                </div>
+              </label>
+              <label class="theme-card">
+                <input type="radio" name="audio-theme" value="scifi" style="display: none;">
+                <div class="theme-card-content">
+                  <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                  </svg>
+                  <span class="theme-title">Sci-Fi</span>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
         <button id="close-settings-btn">CLOSE</button>

@@ -277,38 +277,67 @@
 }
 
 /* =========================================
-   Theme Select Dropdown
+   Theme Select Radio Cards Row
    ========================================= */
-.theme-dropdown {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border-radius: 8px;
-  padding: 10px 15px;
-  font-family: inherit;
-  font-size: 0.85rem;
+.audio-theme-selector {
+  display: flex;
+  gap: 8px;
   width: 100%;
-  outline: none;
+  margin-top: 10px;
+}
+
+.theme-card {
+  flex: 1;
   cursor: pointer;
-  margin-top: 8px;
-  appearance: none; /* remove default arrow */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.theme-dropdown:focus {
-  border-color: rgba(255, 255, 255, 0.25);
+.theme-card-content {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+}
+
+.theme-card:active .theme-card-content {
+  transform: scale(0.95);
+}
+
+.theme-card input:checked + .theme-card-content {
   background: rgba(255, 255, 255, 0.08);
+  border-color: #ffffff;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
 
-.theme-dropdown option {
-  background: #111318;
+.theme-icon {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  transition: color 0.2s;
+  pointer-events: none;
+}
+
+.theme-card input:checked + .theme-card-content .theme-icon {
+  color: #ffffff;
+}
+
+.theme-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #6b7280;
+  transition: color 0.2s;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.theme-card input:checked + .theme-card-content .theme-title {
   color: #ffffff;
 }
 
